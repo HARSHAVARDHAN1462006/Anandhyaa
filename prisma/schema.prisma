@@ -1,0 +1,101 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String         @id @default(cuid())
+  name          String         @default("")
+  phone         String         @unique
+  email         String?        @unique
+  role          String         @default("customer")
+  addresses     Json[]
+  orders        Order[]
+  subscriptions Subscription[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+}
+
+model Category {
+  id       String    @id @default(cuid())
+  name     String
+  slug     String    @unique
+  image    String?
+  products Product[]
+}
+
+model Product {
+  id            String      @id @default(cuid())
+  name          String
+  slug          String      @unique
+  description   String
+  categoryId    String
+  category      Category    @relation(fields: [categoryId], references: [id])
+  price         Int
+  mrp           Int
+  unit          String
+  stock         Int         @default(0)
+  images        String[]
+  isPerishable  Boolean     @default(false)
+  shippingType  String      @default("both")
+  isActive      Boolean     @default(true)
+  orderItems    OrderItem[]
+  createdAt     DateTime    @default(now())
+}
+
+model Order {
+  id              String      @id @default(cuid())
+  userId          String
+  user            User        @relation(fields: [userId], references: [id])
+  items           OrderItem[]
+  status          String      @default("pending")
+  deliverySlot    String
+  deliveryDate    DateTime
+  deliveryAddress Json
+  paymentMethod   String
+  paymentStatus   String      @default("pending")
+  razorpayOrderId String?
+  total           Int
+  notes           String?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+}
+
+model OrderItem {
+  id        String  @id @default(cuid())
+  orderId   String
+  order     Order   @relation(fields: [orderId], references: [id])
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+  quantity  Int
+  price     Int
+}
+
+model Subscription {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id])
+  productId    String
+  frequency    String
+  quantity     Int      @default(1)
+  deliverySlot String
+  startDate    DateTime
+  status       String   @default("active")
+  nextBillDate DateTime
+  createdAt    DateTime @default(now())
+}
+
+model DeliverySlot {
+  id       String   @id @default(cuid())
+  date     DateTime
+  slot     String
+  pincode  String
+  capacity Int      @default(50)
+  booked   Int      @default(0)
+
+  @@unique([date, slot, pincode])
+}
