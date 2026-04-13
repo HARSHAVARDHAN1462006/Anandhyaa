@@ -29,22 +29,22 @@ model Category {
 }
 
 model Product {
-  id            String      @id @default(cuid())
-  name          String
-  slug          String      @unique
-  description   String
-  categoryId    String
-  category      Category    @relation(fields: [categoryId], references: [id])
-  price         Int
-  mrp           Int
-  unit          String
-  stock         Int         @default(0)
-  images        String[]
-  isPerishable  Boolean     @default(false)
-  shippingType  String      @default("both")
-  isActive      Boolean     @default(true)
-  orderItems    OrderItem[]
-  createdAt     DateTime    @default(now())
+  id           String      @id @default(cuid())
+  name         String
+  slug         String      @unique
+  description  String
+  categoryId   String
+  category     Category    @relation(fields: [categoryId], references: [id])
+  price        Int
+  mrp          Int
+  unit         String
+  stock        Int         @default(0)
+  images       String[]
+  isPerishable Boolean     @default(false)
+  shippingType String      @default("both")
+  isActive     Boolean     @default(true)
+  orderItems   OrderItem[]
+  createdAt    DateTime    @default(now())
 }
 
 model Order {
