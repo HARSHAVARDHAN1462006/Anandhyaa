@@ -13,22 +13,16 @@ const handler = NextAuth({
       async authorize(credentials) {
         if (!credentials?.phone || !credentials?.otp) return null;
 
-        // Check in-memory OTP store (dev mode)
-        const otpStore = (globalThis as any).__otpStore || {};
-        const storedOtp = otpStore[credentials.phone];
+        // Get OTP from Redis and verify
+        const { redis } = await import('@/lib/redis');
+        const storedOtp = await redis.get(`otp:${credentials.phone}`);
 
-        console.log(`Verifying OTP for ${credentials.phone}: stored=${storedOtp}, entered=${credentials.otp}`);
+        if (storedOtp !== credentials.otp) return null;
 
-        if (!storedOtp || storedOtp !== credentials.otp) {
-          console.log('OTP mismatch or not found');
-          return null;
-        }
-
-        // Clear OTP after use
-        delete otpStore[credentials.phone];
+        // Delete OTP after use
+        await redis.del(`otp:${credentials.phone}`);
 
         // Find or create user
-        const { prisma } = await import('@/lib/prisma');
         const user = await prisma.user.upsert({
           where:  { phone: credentials.phone },
           update: {},
